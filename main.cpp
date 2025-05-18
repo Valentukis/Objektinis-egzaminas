@@ -6,6 +6,7 @@
 #include <vector>
 #include <cctype>
 #include <algorithm>
+#include <set>
 using namespace std;
 
 const string allowedLetters = 
@@ -54,7 +55,8 @@ string cleanWord(const string& word) {
 
 int main() {
     ifstream input("tekstas.txt");
-    ofstream outFile("output_words.txt");
+    ofstream output_count("output_count.txt");
+    ofstream output_cross("cross-reference.txt");
 
     if (!input) {
         cerr << "Error" << endl;
@@ -62,23 +64,40 @@ int main() {
     }
 
     unordered_map<string, int> wordCount;
-    string line;
+    unordered_map<string, set<int>> wordLines;
 
+    string line;
+    int line_number = 0;
     while (getline(input, line)) {
+
         stringstream ss(line);
         string word;
+        line_number++;
 
         while (ss >> word) {
             string cleaned = cleanWord(word);
             if (!cleaned.empty()) {
                 wordCount[cleaned]++;
+                wordLines[cleaned].insert(line_number);
             }
         }
     }
 
     for (const auto& [word, count] : wordCount) {
         if (count > 1) {
-            outFile << word << " : " << count << '\n';
+            output_count << word << " : " << count << '\n';
+        }
+    }
+
+    for (const auto& [word, lines] : wordLines) {
+
+        if(wordCount[word] > 1) { 
+                output_cross << word << " : ";
+                for (const auto& number : lines) {
+                    output_cross << number << " ";
+                }
+
+            output_cross << endl;
         }
     }
 
