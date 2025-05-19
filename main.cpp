@@ -102,16 +102,22 @@ int main() {
             string url = it->str();
 
             
-            size_t lastDot = url.rfind('.');
-            if (lastDot != string::npos) {
-                string tldPart = url.substr(lastDot + 1);
-                while (!tldPart.empty() && !isalnum(tldPart.back()))
-                    tldPart.pop_back();
+            // remove protocol if needed
+            size_t protocolEnd = url.find("://");
+            size_t start = (protocolEnd != string::npos) ? protocolEnd + 3 : 0;
 
+            // only get domain
+            size_t slashPos = url.find('/', start);
+            string domain = (slashPos != string::npos) ? url.substr(start, slashPos - start) : url.substr(start);
+
+            // extract tld
+            size_t lastDot = domain.rfind('.');
+            if (lastDot != string::npos) {
+                string tldPart = domain.substr(lastDot + 1);
                 transform(tldPart.begin(), tldPart.end(), tldPart.begin(), ::tolower);
 
-                if (validTLDs.count(tldPart)) { 
-                    foundUrls.insert(url);
+                if (validTLDs.count(tldPart)) { //check validity
+                    foundUrls.insert(url);  
                 }
             }
 
