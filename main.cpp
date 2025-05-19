@@ -7,6 +7,8 @@
 #include <cctype>
 #include <algorithm>
 #include <set>
+#include <regex>
+
 using namespace std;
 
 const string allowedLetters = 
@@ -51,20 +53,30 @@ string cleanWord(const string& word) {
 }
 
 
-
-
 int main() {
     ifstream input("tekstas.txt");
+    ifstream urls("links.txt");
     ofstream output_count("output_count.txt");
     ofstream output_cross("cross-reference.txt");
+    ofstream output_url("output_urls.txt");
 
-    if (!input) {
+    if (!input || !urls) {
         cerr << "Error" << endl;
         return 1;
     }
 
+    set<string> validTLDs;
+    string tld;
+    while (getline(urls, tld)) {
+        transform(tld.begin(), tld.end(), tld.begin(), ::tolower);
+        validTLDs.insert(tld);
+    }
+
     unordered_map<string, int> wordCount;
     unordered_map<string, set<int>> wordLines;
+
+    regex urlRegex(R"((https?:\/\/)?(www\.)?[\w\-]+\.[a-z]{2,}(\.[a-z]{2,})?([\/\w\-\.\?\=\&\#]*)?)", regex::icase);
+    set<string> foundUrls;
 
     string line;
     int line_number = 0;
@@ -74,12 +86,36 @@ int main() {
         string word;
         line_number++;
 
+        //Zodziu skaiciavimas/trackinimas
         while (ss >> word) {
             string cleaned = cleanWord(word);
             if (!cleaned.empty()) {
                 wordCount[cleaned]++;
                 wordLines[cleaned].insert(line_number);
             }
+        }
+
+         // URL 
+        sregex_iterator it(line.begin(), line.end(), urlRegex);
+        sregex_iterator end;
+        while (it != end) {
+            string url = it->str();
+
+            
+            size_t lastDot = url.rfind('.');
+            if (lastDot != string::npos) {
+                string tldPart = url.substr(lastDot + 1);
+                while (!tldPart.empty() && !isalnum(tldPart.back()))
+                    tldPart.pop_back();
+
+                transform(tldPart.begin(), tldPart.end(), tldPart.begin(), ::tolower);
+
+                if (validTLDs.count(tldPart)) { 
+                    foundUrls.insert(url);
+                }
+            }
+
+            ++it;
         }
     }
 
@@ -99,6 +135,10 @@ int main() {
 
             output_cross << endl;
         }
+    }
+
+    for (const string url : foundUrls) {
+        output_url << url << endl;
     }
 
     return 0;
