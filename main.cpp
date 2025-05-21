@@ -68,7 +68,6 @@ int main() {
     set<string> validTLDs;
     string tld;
     while (getline(urls, tld)) {
-        transform(tld.begin(), tld.end(), tld.begin(), ::tolower);
         validTLDs.insert(tld);
     }
 
@@ -143,9 +142,12 @@ int main() {
         }
     }
 
+    output_url << "Rasti URL adresai\n";
+    output_url << string(50, '-') << endl;
     for (const string url : foundUrls) {
         output_url << url << endl;
     }
 
+    cout << "Baigta!" << endl;
     return 0;
 }

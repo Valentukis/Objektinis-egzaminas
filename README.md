@@ -29,3 +29,7 @@
 
 ---
 
+##  Paleidimas
+- Paprastas paleidimas su Makefile
+- `make` Sukuria paleidžiamąjį failą `programa.exe`
+- `make clean` Ištrina paleidžiamąjį failą
